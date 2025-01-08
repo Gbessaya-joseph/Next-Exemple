@@ -1,0 +1,44 @@
+---
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        - POSTGRES_URL=${POSTGRES_URL}
+    container_name: demo-docker-nextjs-dev
+    environment:
+      - POSTGRES_URL${POSTGRES_URL}
+    ports:
+      - "2000:2000"
+    env_file:
+      - .env
+    develop:
+      watch:
+        # Rebuild complet si changement dans les fichiers de config ou dépendances
+        - path: ./{package.json,pnpm-lock.yaml,next.config.js,tailwind.config.js}
+          action: rebuild
+        # Sync + restart pour tous les autres fichiers source
+        - path: ./app
+          target: /app/app
+          ignore:
+            - .git
+            - node_modules
+            - .next
+          action: sync+restart
+  prod:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      args:
+        - POSTGRES_URL=${POSTGRES_URL}
+    container_name: demo-docker-nextjs
+    environment:
+      POSTGRES_URL: ${POSTGRES_URL}
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+
+volumes:
+  node_modules:
